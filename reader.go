@@ -43,7 +43,7 @@ func DefaultReader(rd io.Reader) *Reader {
 // NewReader returns a new CSV scanner to read from r.
 // When quoted is false, values must not contain a separator or newline.
 func NewReader(r io.Reader, sep byte, quoted, guess bool) *Reader {
-	s := &Reader{bufio.NewScanner(r), sep, quoted, guess, true, 1, false, 0, false, nil}
+	s := &Reader{bufio.NewScanner(r), sep, quoted, guess, true, 1, false, 0, false, false, nil}
 	s.Split(s.ScanField)
 	return s
 }
