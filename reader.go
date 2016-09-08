@@ -31,7 +31,8 @@ type Reader struct {
 	Comment byte // character marking the start of a line comment. When specified (not 0), line comment appears as empty line.
 	Lazy    bool // specify if quoted values may contains unescaped quote not followed by a separator or a newline
 
-	Headers map[string]int // Index (first is 1) by header
+	UseDefaults bool           // When parsing numbers, if value is empty string use type-dependent Go defaults  (0 for ints, 0.0 for floats, false for bool)
+	Headers     map[string]int // Index (first is 1) by header
 }
 
 // DefaultReader creates a "standard" CSV reader (separator is comma and quoted mode active)
@@ -152,17 +153,39 @@ func (s *Reader) value(value interface{}, copied bool) error {
 	case *string:
 		*value = s.Text()
 	case *int:
-		*value, err = strconv.Atoi(s.Text())
+		v := s.Text()
+		if s.UseDefaults && v == "" {
+			v = "0"
+		}
+		*value, err = strconv.Atoi(v)
 	case *int32:
 		var i int64
-		i, err = strconv.ParseInt(s.Text(), 10, 32)
+		v := s.Text()
+		if s.UseDefaults && v == "" {
+			v = "0"
+		}
+		i, err = strconv.ParseInt(v, 10, 32)
 		*value = int32(i)
 	case *int64:
-		*value, err = strconv.ParseInt(s.Text(), 10, 64)
+		v := s.Text()
+		if s.UseDefaults && v == "" {
+			v = "0"
+		}
+
+		*value, err = strconv.ParseInt(v, 10, 64)
 	case *bool:
-		*value, err = strconv.ParseBool(s.Text())
+		v := s.Text()
+		if s.UseDefaults && v == "" {
+			v = "false"
+		}
+		*value, err = strconv.ParseBool(v)
 	case *float64:
-		*value, err = strconv.ParseFloat(s.Text(), 64)
+		v := s.Text()
+		if s.UseDefaults && v == "" {
+			v = "0.0"
+		}
+
+		*value, err = strconv.ParseFloat(v, 64)
 	case *[]byte:
 		if copied {
 			v := s.Bytes()
